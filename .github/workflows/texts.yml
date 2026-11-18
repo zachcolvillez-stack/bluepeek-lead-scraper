@@ -1,0 +1,18 @@
+name: Write personal texts
+on:
+  schedule:
+    - cron: "30 22,0,2,4,6,8 * * *"   # 08:30–18:30 AEST, every 2 h
+  workflow_dispatch:
+concurrency: { group: texts, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  texts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - env:
+          SCRAPER_TOKEN: ${{ secrets.SCRAPER_TOKEN }}
+        run: node dist/draft.mjs 3000

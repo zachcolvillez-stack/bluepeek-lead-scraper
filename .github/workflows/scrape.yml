@@ -1,0 +1,35 @@
+name: Daily lead scrape
+on:
+  schedule:
+    - cron: "0 20 * * *"   # 06:00 AEST
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Searches to run"
+        default: "1400"
+concurrency: { group: scrape, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Fetch gosom google-maps-scraper v1.19.0 (pinned sha256)
+        run: |
+          curl -sSL -o gmaps https://github.com/gosom/google-maps-scraper/releases/download/v1.19.0/google_maps_scraper-1.19.0-linux-amd64
+          echo "05e2bc1159e57f7b48a323169545997bb9671fe57d2df501a3be71d4429f1d2b  gmaps" | sha256sum -c -
+          chmod +x gmaps
+      - name: Scrape
+        env:
+          SCRAPER_TOKEN: ${{ secrets.SCRAPER_TOKEN }}
+          GMAPS_BIN: ${{ github.workspace }}/gmaps
+          LOG_DIR: ${{ github.workspace }}/logs
+          LIMIT: ${{ inputs.limit || '1400' }}
+          CONCURRENCY: "8"
+        run: node dist/run.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: scrape-log, path: logs/, retention-days: 7 }
