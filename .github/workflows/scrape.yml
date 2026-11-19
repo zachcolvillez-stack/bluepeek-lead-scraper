@@ -27,7 +27,7 @@ jobs:
           SCRAPER_TOKEN: ${{ secrets.SCRAPER_TOKEN }}
           GMAPS_BIN: ${{ github.workspace }}/gmaps
           LOG_DIR: ${{ github.workspace }}/logs
-          LIMIT: ${{ inputs.limit || '1400' }}
+          LIMIT: ${{ inputs.limit || '4000' }}
           CONCURRENCY: "8"
         run: node dist/run.mjs
       - if: always()
